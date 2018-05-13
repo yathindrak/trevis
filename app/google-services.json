@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "103952602836",
+    "firebase_url": "https://trevis-ae237.firebaseio.com",
+    "project_id": "trevis-ae237",
+    "storage_bucket": "trevis-ae237.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:103952602836:android:53fd556e5fbe6d1b",
+        "android_client_info": {
+          "package_name": "com.trevis.trevis"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "103952602836-v3tsa9cfd6uu37ce901gvmb7nq9npopt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.trevis.trevis",
+            "certificate_hash": "7cb4f987aeb2874dbc4409f46d033bae1c39037c"
+          }
+        },
+        {
+          "client_id": "103952602836-dcask1g8q3diaom7m01fdpoe5jn4co4i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDS5OdL75j3sZS8ii56WbOeatOrhyCC5FA"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "103952602836-dcask1g8q3diaom7m01fdpoe5jn4co4i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
