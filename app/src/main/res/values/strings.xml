@@ -1,3 +1,27 @@
 <resources>
-    <string name="app_name">Trevis</string>
+    <string name="app_name">sampleChatApp</string>
+    <string name="need_account">NEED A NEW ACCOUNT ?</string>
+    <string name="display_name">Full Name</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="gender">Gender</string>
+    <string name="radioBtn_male">Male</string>
+    <string name="radioBtn_female">Female</string>
+    <string name="mobile">Mobile</string>
+    <string name="create_account">CREATE ACCOUNT</string>
+    <string name="log_out">Log Out</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="default_status">Hi there, I\'m using Lapit Chat App</string>
+    <string name="title_activity_status">StatusActivity</string>
+    <string name="title_activity_chat">ChatActivity</string>
+
+
+    <!-- Api request URLs' -->
+    <string name="Add_Users">Hello blank fragment</string>
+    <!--<string name="default_status">Hi there, I\'m using Lapit Chat App</string>-->
+    <!--<string name="title_activity_status">StatusActivity</string>-->
+    <!--<string name="title_activity_chat">ChatActivity</string>-->
+
 </resources>
