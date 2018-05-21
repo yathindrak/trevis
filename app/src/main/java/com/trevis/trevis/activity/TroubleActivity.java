@@ -7,21 +7,23 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.view.View;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -38,7 +40,8 @@ import com.trevis.trevis.service.LocationService;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class MainActivity extends AppCompatActivity {
+public class TroubleActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener {
 
     static boolean status;
     LocationManager locationManager;
@@ -58,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
     private ActionBarDrawerToggle mDrawerToggle;
     private String mActivityTitle;
 
-
     private ServiceConnection sc = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -73,58 +75,51 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null)
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-        if(currentUser == null){
-            sendToStart();
-        } else {
-            mUserRef.child("online").setValue("true");
-        }
-    }
-
-    // Send to start if not logged in successfully
-    private void sendToStart() {
-        Intent startIntent = new Intent(MainActivity.this, LoginActivity.class);
-        startActivity(startIntent);
-        // When user go there we dont need to cme him back to this page. So finish that
-        finish();
-    }
-
-    @Override
-    protected void onDestroy() {
-        if(status==true){
-            unbindService();
-        }
-        super.onDestroy();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_trouble);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
 
         //
-        mDrawerList = (ListView)findViewById(R.id.navList);
-        mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        //mDrawerList = (ListView)findViewById(R.id.navList);
+        //mDrawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
         mActivityTitle = getTitle().toString();
 
-        addDrawerItems();
-        setupDrawer();
+//        addDrawerItems();
+//        setupDrawer();
 
-       // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-   //     getSupportActionBar().setHomeButtonEnabled(true);
+        // getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //     getSupportActionBar().setHomeButtonEnabled(true);
 
         // Initialize Firebase auth
         mAuth = FirebaseAuth.getInstance();
 
-        mToolbar = (Toolbar) findViewById(R.id.main_page_toolbar);
+        //mToolbar = (Toolbar) findViewById(R.id.trouble_page_toolbar);
 
-        setSupportActionBar(mToolbar);
-        getSupportActionBar().setTitle("YK Sample Chat");
+//        setSupportActionBar(mToolbar);
+//        getSupportActionBar().setTitle("YK Sample Chat");
 
         if (mAuth.getCurrentUser() != null) {
             mUserRef = FirebaseDatabase.getInstance().getReference().child("Users").child(mAuth.getCurrentUser().getUid());
@@ -147,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
         checkPermissions();
 
         /*
-        * This should be triggered when the user is in a trouble*/
+         * This should be triggered when the user is in a trouble*/
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -190,8 +185,119 @@ public class MainActivity extends AppCompatActivity {
                 }, 5000);
             }
         });
+    }
 
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
 
+        if(status==false){
+            super.onBackPressed();
+        }
+        else{
+            moveTaskToBack(true);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.trouble, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        if(item.getItemId() == R.id.main_logout_btn){
+
+            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
+
+            FirebaseAuth.getInstance().signOut();
+            sendToStart();
+
+        }
+
+        // Activate the navigation drawer toggle
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_my_location) {
+            // Go to location activity
+        } else if (id == R.id.nav_trouble) {
+
+            Intent startIntent = new Intent(TroubleActivity.this, TroubleActivity.class);
+            startActivity(startIntent);
+            finish();
+
+        } else if (id == R.id.nav_community) {
+            System.out.println("sjsfhdhsdfjsifjjfjsodfksofdoskdfoskodfksokfo");
+            Intent startIntent = new Intent(TroubleActivity.this, CommunityActivity.class);
+            startActivity(startIntent);
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null)
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if(currentUser == null){
+            sendToStart();
+        } else {
+            mUserRef.child("online").setValue("true");
+        }
+    }
+
+    // Send to start if not logged in successfully
+    private void sendToStart() {
+        Intent startIntent = new Intent(TroubleActivity.this, LoginActivity.class);
+        startActivity(startIntent);
+        // When user go there we dont need to cme him back to this page. So finish that
+        finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if(status==true){
+            unbindService();
+        }
+        super.onDestroy();
     }
 
     private void checkPermissions() {
@@ -233,15 +339,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    public void onBackPressed() {
-        if(status==false){
-            super.onBackPressed();
-        }
-        else{
-            moveTaskToBack(true);
-        }
-    }
 
     void bindService() {
         if (status == true)
@@ -301,113 +398,4 @@ public class MainActivity extends AppCompatActivity {
             mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
         }
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-
-        getMenuInflater().inflate(R.menu.chat_main_menu, menu);
-
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        super.onOptionsItemSelected(item);
-
-        if(item.getItemId() == R.id.main_logout_btn){
-
-            mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
-
-            FirebaseAuth.getInstance().signOut();
-            sendToStart();
-
-        }
-
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        // Activate the navigation drawer toggle
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-
-//        if(item.getItemId() == R.id.main_settings_btn){
-//
-//            Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
-//            startActivity(settingsIntent);
-//
-//        }
-//
-//        if(item.getItemId() == R.id.main_all_btn){
-//
-//            Intent settingsIntent = new Intent(MainActivity.this, UsersActivity.class);
-//            startActivity(settingsIntent);
-//
-//        }
-
-        return true;
-    }
-
-
-
-    private void addDrawerItems() {
-        String[] osArray = { "My Location", "My Pro", "Windows", "", "My Profile" };
-        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, osArray);
-        mDrawerList.setAdapter(mAdapter);
-
-        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Toast.makeText(MainActivity.this, position+"Time for an upgrade!"+id, Toast.LENGTH_SHORT).show();
-
-                if (id == 0){
-                    //Go to current
-                }
-                else if (id == 1){
-
-                }
-            }
-        });
-    }
-
-    private void setupDrawer() {
-        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
-
-            /** Called when a drawer has settled in a completely open state. */
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                getSupportActionBar().setTitle("Navigation!");
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
-
-            /** Called when a drawer has settled in a completely closed state. */
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-                getSupportActionBar().setTitle(mActivityTitle);
-                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
-            }
-        };
-
-        mDrawerToggle.setDrawerIndicatorEnabled(true);
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
-    }
-
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Sync the toggle state after onRestoreInstanceState has occurred.
-        mDrawerToggle.syncState();
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        mDrawerToggle.onConfigurationChanged(newConfig);
-    }
-
 }

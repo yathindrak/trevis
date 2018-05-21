@@ -1,6 +1,7 @@
 package com.trevis.trevis.activity;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
@@ -182,7 +183,7 @@ public class RegisterActivity extends AppCompatActivity {
                             new Response.Listener<JSONObject>() {
                                 @Override
                                 public void onResponse(JSONObject response) {
-                                    Log.d("TAG", gson.toString());
+                                    Log.d("TAG", response.toString());
                                 }
                             }, new Response.ErrorListener() {
                         @Override
@@ -199,6 +200,12 @@ public class RegisterActivity extends AppCompatActivity {
                     };
                     mQueue.add(jsonObjectRequest);
 
+                    // Go to the main intent
+                    Intent mainIntent = new Intent(RegisterActivity.this, MainActivity.class);
+                    //Add new task and clear previous tasks: unless when we press back it will still go to the start page
+                    mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(mainIntent);
+                    finish();
                 }
                 else {
                     mRegProgress.hide();

@@ -3,6 +3,10 @@ package com.trevis.trevis.modal;
 public class User {
     private String userId;
     private String deviceToken;
+    private String status;
+    private String image;
+    private String thumbimage;
+    private boolean isOnline = false;
     private String name;
     private String email;
     private String password;
@@ -36,6 +40,38 @@ public class User {
 
     public void setDeviceToken(String deviceToken) {
         this.deviceToken = deviceToken;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public String getThumbimage() {
+        return thumbimage;
+    }
+
+    public void setThumbimage(String thumbimage) {
+        this.thumbimage = thumbimage;
+    }
+
+    public boolean isOnline() {
+        return isOnline;
+    }
+
+    public void setOnline(boolean online) {
+        isOnline = online;
     }
 
     public String getName() {
@@ -76,5 +112,18 @@ public class User {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "userId='" + userId + '\'' +
+                ", deviceToken='" + deviceToken + '\'' +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", mobile='" + mobile + '\'' +
+                ", gender='" + gender + '\'' +
+                '}';
     }
 }

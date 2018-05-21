@@ -24,4 +24,15 @@
     <!--<string name="title_activity_status">StatusActivity</string>-->
     <!--<string name="title_activity_chat">ChatActivity</string>-->
 
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="title_activity_users">UsersActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_trouble">TroubleActivity</string>
+    <string name="title_activity_alert">AlertActivity</string>
 </resources>
