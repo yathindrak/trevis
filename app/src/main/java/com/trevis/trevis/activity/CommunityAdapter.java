@@ -17,11 +17,11 @@ import java.util.List;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
-public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHolder>  {
+public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.ViewHolder>  {
     private List<User> friendslist;
     private Context context;
 
-    public FriendsAdapter(List<User> friendslist, Context context) {
+    public CommunityAdapter(List<User> friendslist, Context context) {
         this.friendslist = friendslist;
         this.context = context;
     }
@@ -51,7 +51,7 @@ public class FriendsAdapter extends RecyclerView.Adapter<FriendsAdapter.ViewHold
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public FriendsAdapter(List<User> list) {
+    public CommunityAdapter(List<User> list) {
         friendslist = list;
     }
 

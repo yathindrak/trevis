@@ -35,8 +35,7 @@ public class CommunityActivity extends AppCompatActivity implements SearchView.O
 
     private Toolbar mToolbar;
     private RecyclerView mRecyclerView;
-    private FriendsAdapter mAdapter;
-    private FriendsAdapter mFriendsAdapter;
+    private CommunityAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     List<User> friendslist;
     RequestQueue queue;
@@ -50,7 +49,6 @@ public class CommunityActivity extends AppCompatActivity implements SearchView.O
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("People");
-
         getAllPeople();
 
         mRecyclerView = (RecyclerView) findViewById(R.id.friends_recycler_view);
@@ -84,9 +82,12 @@ public class CommunityActivity extends AppCompatActivity implements SearchView.O
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // specify an adapter (see also next example)
-        mAdapter = new FriendsAdapter(friendslist, this);
-        mFriendsAdapter = new FriendsAdapter(friendslist, this);
+        mAdapter = new CommunityAdapter(friendslist, this);
+        //mFriendsAdapter = new CommunityAdapter(friendslist, this);
         mRecyclerView.setAdapter(mAdapter);
+
+
+
     }
 
     @Override
@@ -110,7 +111,6 @@ public class CommunityActivity extends AppCompatActivity implements SearchView.O
     public boolean onQueryTextChange(String newText) {
         //This method will be triggered when search data changed
 
-        System.out.println("Text changed ::: "+newText);
         text = newText.toLowerCase();
         ArrayList<User> newList = new ArrayList<>();
 
@@ -129,44 +129,11 @@ public class CommunityActivity extends AppCompatActivity implements SearchView.O
         return false;
     }
 
-    public void getAllPeople(){
+    public synchronized void getAllPeople(){
         String GET_All_USERS_URL ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
 
         // Create a new volley request queue
         queue = Volley.newRequestQueue(getApplicationContext());
-
-//        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(GET_All_USERS_URL, null,
-//                new Response.Listener<JSONObject>() {
-//                    @Override
-//                    public void onResponse(JSONObject response) {
-//                        try {
-//                            System.out.println("Response awoo");
-////                            Gson gson = new Gson();
-////                            User user = gson.fromJson(response.toString(), User.class);
-////                            Log.d("TAG", gson.toJson(user));
-////
-////                            JSONArray jsonArray = response.getJSONArray("");
-////
-////                            System.out.println("J array"+jsonArray.getString(0));
-//
-//                        }
-//                        catch (Exception e){
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError error) {
-//                Log.e("TAG", error.getMessage(), error);
-//            }
-//        }) {
-//            @Override
-//            public Map<String, String> getHeaders() throws AuthFailureError {
-//                Map<String, String> params = new HashMap<String, String>();
-//                params.put("Content-Type", "application/json");
-//                return params;
-//            }
-//        };
 
         JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(
                 Request.Method.GET,
@@ -182,15 +149,17 @@ public class CommunityActivity extends AppCompatActivity implements SearchView.O
                         try{
                             // Loop through the array elements
                             for(int i=0;i<response.length();i++){
-                                // Get current json object
-                                JSONObject user = response.getJSONObject(i);
-
-
                                 Gson gson = new Gson();
                                 Type type = new TypeToken<List<User>>(){}.getType();
                                 friendslist = gson.fromJson(response.toString(), type);
+                                System.out.println(friendslist.get(0));
+                                // specify an adapter (see also next example)
+                                mAdapter = new CommunityAdapter(friendslist, getApplicationContext());
+                                //mFriendsAdapter = new CommunityAdapter(friendslist, this);
+                                mRecyclerView.setAdapter(mAdapter);
+                                mAdapter.notifyDataSetChanged();
                             }
-                        }catch (JSONException e){
+                        }catch (Exception e){
                             e.printStackTrace();
                         }
                     }
