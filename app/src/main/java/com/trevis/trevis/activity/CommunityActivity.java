@@ -62,8 +62,11 @@ public class CommunityActivity extends AppCompatActivity implements SearchView.O
                         User tappedUser = friendslist.get(position);
 
                         Intent profileIntent = new Intent(CommunityActivity.this, ProfileActivity.class);
+                        profileIntent.putExtra("tappedUserUID", tappedUser.getUserId());
                         profileIntent.putExtra("tappedUserName", tappedUser.getName());
                         profileIntent.putExtra("tappedUserStatus", tappedUser.getStatus());
+                        profileIntent.putExtra("tappedUserDevToken", tappedUser.getDeviceToken());
+                        profileIntent.putExtra("tappedUserImage", tappedUser.getThumbimage());
                         startActivity(profileIntent);
                     }
 

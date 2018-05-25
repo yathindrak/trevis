@@ -3,6 +3,14 @@ package com.trevis.trevis.activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.trevis.trevis.R;
 
 
@@ -29,7 +37,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
+import com.trevis.trevis.RequestType;
+import com.trevis.trevis.modal.FriendRequest;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,12 +49,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -68,7 +81,10 @@ public class ProfileActivity extends AppCompatActivity {
 
     private String mCurrent_state;
     private String device_token;
+    List<FriendRequest> requestList;
+    FriendRequest friendRequest;
 
+    RequestQueue queue;
     public static final String KEY_FCM_SENDER_ID = "sender_id";
     public static final String KEY_FCM_TEXT = "text";
 
@@ -83,13 +99,12 @@ public class ProfileActivity extends AppCompatActivity {
             StrictMode.setThreadPolicy(policy);
         }
 
-        //Get extra
+        //Get profile user details using extra
         final String profile_name = getIntent().getStringExtra("tappedUserName");
         final String profile_status = getIntent().getStringExtra("tappedUserStatus");
-
-
-
-
+        final String profile_uid = getIntent().getStringExtra("tappedUserUID");
+        final String profile_token = getIntent().getStringExtra("tappedUserDevToken");
+        final String profile_image = getIntent().getStringExtra("tappedUserImage");
 
 
 
@@ -124,10 +139,130 @@ public class ProfileActivity extends AppCompatActivity {
         mProgressDialog.setCanceledOnTouchOutside(false);
         mProgressDialog.show();
 
+        //Set items on profile
         mProfileName.setText(profile_name);
         mProfileStatus.setText(profile_status);
+        Picasso.get().load(profile_image).placeholder(R.drawable.default_avatar).into(mProfileImage);
+
+
+        // If own account
+        if(mCurrent_user.getUid().equals(profile_uid)){
+            //Remove decline button
+            mDeclineBtn.setEnabled(false);
+            mDeclineBtn.setVisibility(View.INVISIBLE);
+            //Remove req send button
+            mProfileSendReqBtn.setEnabled(false);
+            mProfileSendReqBtn.setVisibility(View.INVISIBLE);
+        }
+
+        //Send Friend Requests Database by current user's UID
+
+        //Check whether selected user id is in the friend requests set
+
+        //Req send by me
+        getReqType("from", "from_uid", "to_uid");
+
+        if (friendRequest.getFrom().equals(mCurrent_user.getUid())){
+            //I have sent
+            //Cancel request
+
+            mCurrent_state = "req_sent";
+            mProfileSendReqBtn.setText("Cancel Friend Request");
+
+            //Hide decline btn
+            mDeclineBtn.setVisibility(View.INVISIBLE);
+            mDeclineBtn.setEnabled(false);
+        }
+        else if (friendRequest.getTo().equals(mCurrent_user.getUid())){
+            //I got a request
+            //Should confirm or decline
+            mCurrent_state = "req_received";
+            mProfileSendReqBtn.setText("Accept Friend Request");
+
+            //Display decline btn
+            mDeclineBtn.setVisibility(View.VISIBLE);
+            mDeclineBtn.setEnabled(true);
+        }
+        else if (isFriend(mCurrent_user.getUid()) == true){
+            //Check whether friends in friends collection
+        }
+
+//                mFriendReqDatabase.child(mCurrent_user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+//                    @Override
+//                    public void onDataChange(DataSnapshot dataSnapshot) {
+//
+//                        //Check whether selected user id is in the friend requests set
+//                        if(dataSnapshot.hasChild(user_id)){
+//
+//                            //Get req type
+//                            String req_type = dataSnapshot.child(user_id).child("request_type").getValue().toString();
+//
+//                            if(req_type.equals("received")){
+//                                mCurrent_state = "req_received";
+//                                mProfileSendReqBtn.setText("Accept Friend Request");
+//
+//                                //Display decline btn
+//                                mDeclineBtn.setVisibility(View.VISIBLE);
+//                                mDeclineBtn.setEnabled(true);
+//                            }
+//                            else if(req_type.equals("sent")) {
+//                                mCurrent_state = "req_sent";
+//                                mProfileSendReqBtn.setText("Cancel Friend Request");
+//
+//                                //Hide decline btn
+//                                mDeclineBtn.setVisibility(View.INVISIBLE);
+//                                mDeclineBtn.setEnabled(false);
+//                            }
+//
+//                            mProgressDialog.dismiss();
+//
+//                        } else {
+//
+//                            mFriendDatabase.child(mCurrent_user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+//                                @Override
+//                                public void onDataChange(DataSnapshot dataSnapshot) {
+//
+//                                    if(dataSnapshot.hasChild(user_id)){
+//
+//                                        mCurrent_state = "friends";
+//                                        mProfileSendReqBtn.setText("Unfriend this Person");
+//
+//                                        mDeclineBtn.setVisibility(View.INVISIBLE);
+//                                        mDeclineBtn.setEnabled(false);
+//
+//                                    }
+//                                    mProgressDialog.dismiss();
+//                                }
+//
+//                                @Override
+//                                public void onCancelled(DatabaseError databaseError) {
+//                                    mProgressDialog.dismiss();
+//                                }
+//                            });
+//                        }
+//                    }
+//
+//                    @Override
+//                    public void onCancelled(DatabaseError databaseError) {
+//
+//                    }
+//                });
+//            }
+//
+//            @Override
+//            public void onCancelled(DatabaseError databaseError) {
+//
+//            }
+//        });
+//
+
+
+
+
+
 
         mProgressDialog.dismiss();
+
 
 
 //        //Should change below code
@@ -434,93 +569,95 @@ public class ProfileActivity extends AppCompatActivity {
 //        });
     }
 
-    private void sendNotification() {
-//        //send Push Notification
-//        HttpsURLConnection connection = null;
-//        try {
-//
-//            URL url = new URL("https://fcm.googleapis.com/fcm/send");
-//            connection = (HttpsURLConnection) url.openConnection();
-//            connection.setDoOutput(true);
-//            connection.setDoInput(true);
-//            connection.setRequestMethod("POST");
-//            connection.setRequestProperty("Content-Type", "application/json");
-//            //Put below you FCM API Key instead
-//            connection.setRequestProperty("Authorization", "key="
-//                    + "AAAA2U0NWhk:APA91bEIyK83CJMgM4NkA5JlO42laoT6VRAmVp4kv-DVdQB01-Eraam02B6tUiA6rYiBYrP2A08VZhgpFi2qDv4knkPi5_S2Ug7XHxzl5ILGN3-2h3tc17LMMhcMJRtqP_6KRBb_Ub2U");
-//
-//            JSONObject root = new JSONObject();
-//            JSONObject data = new JSONObject();
-//            data.put(KEY_FCM_TEXT, text);
-//            data.put(KEY_FCM_SENDER_ID, senderId);
-//            root.put("data", data);
-//            root.put("to", receiverId);
-//
-//
-//            byte[] outputBytes = root.toString().getBytes("UTF-8");
-//            OutputStream os = connection.getOutputStream();
-//            os.write(outputBytes);
-//            os.flush();
-//            os.close();
-//            connection.getInputStream(); //do not remove this line. request will not work without it gg
-//
-//        } catch (MalformedURLException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (connection != null) connection.disconnect();
-//        }
+    public void getReqType(String need, String from_uid, String to_uid){
+        String FIND_REQ_BY_FROM_URL ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
+        String FIND_REQ_BY_TO_URL ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
+        String FIND_IN_FRIENDS_URL = "http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
+        String url = null;
 
-
-
-
-        String authKey = "AAAA2U0NWhk:APA91bEIyK83CJMgM4NkA5JlO42laoT6VRAmVp4kv-DVdQB01-Eraam02B6tUiA6rYiBYrP2A08VZhgpFi2qDv4knkPi5_S2Ug7XHxzl5ILGN3-2h3tc17LMMhcMJRtqP_6KRBb_Ub2U"; // You FCM AUTH key
-        String FMCurl = "https://fcm.googleapis.com/fcm/send";
-
-        try {
-            URL url = new URL(FMCurl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-            conn.setUseCaches(false);
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "key=" + authKey);
-            conn.setRequestProperty("Content-Type", "application/json");
-
-            JSONObject data = new JSONObject();
-            data.put("to", device_token.trim());
-            JSONObject info = new JSONObject();
-            info.put("title", "FCM Notification Title"); // Notification title
-            info.put("body", "Hello First Test notification"); // Notification body
-            data.put("notification", info);
-
-            OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
-            wr.write(data.toString());
-            wr.flush();
-            wr.close();
-
-            int responseCode = conn.getResponseCode();
-            System.out.println("Response Code : " + responseCode);
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
+        if (need.equals("from")){
+            url = FIND_REQ_BY_FROM_URL;
         }
-        catch (IOException e){
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
+        else if (need.equals("to")){
+            url = FIND_REQ_BY_TO_URL;
         }
+        else {
+//            throw new RuntimeException();
+        }
+
+        // Create a new volley request queue
+        queue = Volley.newRequestQueue(getApplicationContext());
+
+        JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(
+                Request.Method.GET,
+                url,
+                null,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        // Do something with response
+                        // Process the JSON
+                        try{
+                            // Loop through the array elements
+                            for(int i=0;i<response.length();i++){
+                                Gson gson = new Gson();
+                                Type type = new TypeToken<FriendRequest>(){}.getType();
+                                friendRequest = gson.fromJson(response.toString(), type);
+                                System.out.println(requestList.get(0));
+
+
+                            }
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener(){
+                    @Override
+                    public void onErrorResponse(VolleyError error){
+                        // Do something when error occurred
+                        System.out.println("An error occuered");
+                        System.out.println(error);
+                    }
+                }
+        );
+        queue.add(jsonObjectRequest);
     }
 
+
+    public boolean isFriend(String uid){
+        String FIND_IN_FRIENDS_URL = "http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
+        String url = null;
+
+        // Create a new volley request queue
+        queue = Volley.newRequestQueue(getApplicationContext());
+
+        JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(
+                Request.Method.GET,
+                url,
+                null,
+                new Response.Listener<JSONArray>() {
+                    @Override
+                    public void onResponse(JSONArray response) {
+                        // Do something with response
+                        // Process the JSON
+                        try{
+                            System.out.println(response);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener(){
+                    @Override
+                    public void onErrorResponse(VolleyError error){
+                        // Do something when error occurred
+                        System.out.println("An error occuered");
+                        System.out.println(error);
+                    }
+                }
+        );
+        queue.add(jsonObjectRequest);
+        return false;
+    }
 }

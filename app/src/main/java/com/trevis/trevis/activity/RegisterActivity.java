@@ -31,6 +31,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 import com.trevis.trevis.R;
+import com.trevis.trevis.modal.Friend;
 import com.trevis.trevis.modal.User;
 
 import org.json.JSONException;
@@ -57,6 +58,7 @@ public class RegisterActivity extends AppCompatActivity {
     private RadioGroup genderGroup;
     private RadioButton genderPick;
     private Button mCreateBtn;
+    FirebaseUser current_user;
 
     //Firebase Auth
     private FirebaseAuth mAuth;
@@ -69,6 +71,7 @@ public class RegisterActivity extends AppCompatActivity {
     // Instantiate the RequestQueue.
     RequestQueue queue;
     String url ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/add";
+    String url_friends ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/saveFrnd";
 
 
     @Override
@@ -125,13 +128,48 @@ public class RegisterActivity extends AppCompatActivity {
                     mRegProgress.show();
 
                     register_user(display_name, email, password, mobile, gender);
-
                 }
-
-
-
             }
         });
+    }
+
+    public void saveUserInFriends(){
+        RequestQueue friendQueue = Volley.newRequestQueue(getApplicationContext());
+
+        Friend friendBase = new Friend();
+        friendBase.setUserId(current_user.getUid());
+
+        final Gson gson = new Gson();
+        String json_frnd = gson.toJson(friendBase);
+
+        JSONObject jsonBodyFriend = null;
+
+        try {
+            jsonBodyFriend = new JSONObject(json_frnd);
+        }
+        catch (JSONException e) {
+        }
+
+        JsonObjectRequest jsonObjectRequestFrnd = new JsonObjectRequest(url_friends, jsonBodyFriend,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("TAG", response.toString());
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("TAG", error.getMessage(), error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Content-Type", "application/json");
+                return params;
+            }
+        };
+        friendQueue.add(jsonObjectRequestFrnd);
     }
 
 
@@ -149,8 +187,10 @@ public class RegisterActivity extends AppCompatActivity {
 
                     mRegProgress.hide();
 
-                    FirebaseUser current_user = FirebaseAuth.getInstance().getCurrentUser();
+                    current_user = FirebaseAuth.getInstance().getCurrentUser();
                     String uid = current_user.getUid();
+
+                    saveUserInFriends();
 
                     // Get the user device token
                     String device_token = FirebaseInstanceId.getInstance().getToken();
@@ -167,14 +207,20 @@ public class RegisterActivity extends AppCompatActivity {
                     newUser.setMobile(mobile);
                     newUser.setGender(gender);
 
+
+
                     final Gson gson = new Gson();
                     String json = gson.toJson(newUser);
+
+
 
                     Log.d("TAG", json);
 
                     JSONObject jsonBody = null;
+
                     try {
                         jsonBody = new JSONObject(json);
+
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -183,7 +229,8 @@ public class RegisterActivity extends AppCompatActivity {
                             new Response.Listener<JSONObject>() {
                                 @Override
                                 public void onResponse(JSONObject response) {
-                                    Log.d("TAG", response.toString());
+                                    //Log.d("TAG", response.toString());
+
                                 }
                             }, new Response.ErrorListener() {
                         @Override
