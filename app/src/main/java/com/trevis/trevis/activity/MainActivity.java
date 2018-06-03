@@ -152,46 +152,52 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                builder.setTitle("How to close alertdialog programmatically");
-                builder.setMessage("5 second dialog will close automatically");
-                builder.setCancelable(false);
-
-                final AlertDialog closedialog= builder.create();
-
-
-                closedialog.setButton(AlertDialog.BUTTON_POSITIVE, "Proceed", new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        //Send data to the backend
-                        System.out.println("Lat : " +LocationService.mCurrentLocation.getLatitude());
-                        System.out.println("Long : " +LocationService.mCurrentLocation.getLongitude());
-
-                        //Pass user id and location
-
-                    } });
-
-                closedialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        System.out.println("Clickedd");
-
-                    } });
-                closedialog.show();
-
-                final Timer timer2 = new Timer();
-                timer2.schedule(new TimerTask() {
-                    public void run() {
-                        closedialog.dismiss();
-                        timer2.cancel(); //this will cancel the timer of the system
-                    }
-                }, 5000);
+//                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+//                builder.setTitle("How to close alertdialog programmatically");
+//                builder.setMessage("5 second dialog will close automatically");
+//                builder.setCancelable(false);
+//
+//                final AlertDialog closedialog= builder.create();
+//
+//
+//                closedialog.setButton(AlertDialog.BUTTON_POSITIVE, "Proceed", new DialogInterface.OnClickListener() {
+//
+//                    public void onClick(DialogInterface dialog, int id) {
+//
+//                        //Send data to the backend
+//                        System.out.println("Lat : " +LocationService.mCurrentLocation.getLatitude());
+//                        System.out.println("Long : " +LocationService.mCurrentLocation.getLongitude());
+//
+//                        //Pass user id and location
+//
+//                    } });
+//
+//                closedialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+//
+//                    public void onClick(DialogInterface dialog, int id) {
+//
+//                        System.out.println("Clickedd");
+//
+//                    } });
+//                closedialog.show();
+//
+//                final Timer timer2 = new Timer();
+//                timer2.schedule(new TimerTask() {
+//                    public void run() {
+//                        closedialog.dismiss();
+//                        timer2.cancel(); //this will cancel the timer of the system
+//                    }
+//                }, 5000);
+                moveToBLEActivity();
             }
         });
 
 
+    }
+
+    public void moveToBLEActivity(){
+        Intent bleStartIntent = new Intent(this,BLEActivity.class);
+        startActivity(bleStartIntent);
     }
 
     private void checkPermissions() {

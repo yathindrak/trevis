@@ -31,7 +31,7 @@
             android:layout_alignParentTop="true"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="190dp"
-            android:text="Button"
+            android:text="start BLE"
             tools:layout_editor_absoluteX="125dp"
             tools:layout_editor_absoluteY="16dp" />
     </RelativeLayout>
