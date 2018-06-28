@@ -56,7 +56,7 @@ public class CommunityActivity extends AppCompatActivity implements SearchView.O
         mRecyclerView.addOnItemTouchListener(
                 new RecyclerItemClickListener(this, mRecyclerView ,new RecyclerItemClickListener.OnItemClickListener() {
                     @Override public void onItemClick(View view, int position) {
-                        Toast.makeText(getApplicationContext(),"Clicked "+position,Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(getApplicationContext(),"Clicked "+position,Toast.LENGTH_SHORT).show();
 
                         //Get the user which clicked on
                         User tappedUser = friendslist.get(position);
@@ -133,21 +133,21 @@ public class CommunityActivity extends AppCompatActivity implements SearchView.O
     }
 
     public synchronized void getAllPeople(){
-        String GET_All_USERS_URL ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
+        //String GET_All_USERS_URL ="http://192.168.8.100:9000/getAll";
 
         // Create a new volley request queue
         queue = Volley.newRequestQueue(getApplicationContext());
 
         JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(
                 Request.Method.GET,
-                GET_All_USERS_URL,
+                getString(R.string.GET_All_USERS_URL),
                 null,
                 new Response.Listener<JSONArray>() {
                     @Override
                     public void onResponse(JSONArray response) {
                         // Do something with response
                         //mTextView.setText(response.toString());
-                        System.out.println(response.toString());
+                        //System.out.println(response.toString());
                         // Process the JSON
                         try{
                             // Loop through the array elements

@@ -2,7 +2,7 @@ package com.trevis.trevis.modal;
 
 public class Friend {
     private String userId;
-//    private Friends[] friends;
+    private Friends[] friends;
 
     public String getUserId() {
         return userId;
@@ -12,11 +12,11 @@ public class Friend {
         this.userId = userId;
     }
 
-//    public Friends[] getFriends() {
-//        return friends;
-//    }
-//
-//    public void setFriends(Friends[] friends) {
-//        this.friends = friends;
-//    }
+    public Friends[] getFriends() {
+        return friends;
+    }
+
+    public void setFriends(Friends[] friends) {
+        this.friends = friends;
+    }
 }

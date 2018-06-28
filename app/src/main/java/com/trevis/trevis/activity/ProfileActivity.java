@@ -1,14 +1,20 @@
 package com.trevis.trevis.activity;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.trevis.trevis.R;
@@ -38,7 +44,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 import com.trevis.trevis.RequestType;
+import com.trevis.trevis.modal.Friend;
 import com.trevis.trevis.modal.FriendRequest;
+import com.trevis.trevis.modal.Friends;
+import com.trevis.trevis.modal.User;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -84,6 +93,8 @@ public class ProfileActivity extends AppCompatActivity {
     List<FriendRequest> requestList;
     FriendRequest friendRequest;
 
+    String selected_uid;
+
     RequestQueue queue;
     public static final String KEY_FCM_SENDER_ID = "sender_id";
     public static final String KEY_FCM_TEXT = "text";
@@ -106,17 +117,8 @@ public class ProfileActivity extends AppCompatActivity {
         final String profile_token = getIntent().getStringExtra("tappedUserDevToken");
         final String profile_image = getIntent().getStringExtra("tappedUserImage");
 
+        selected_uid = profile_uid;
 
-
-
-
-
-//        mRootRef = FirebaseDatabase.getInstance().getReference();
-//
-//        mUsersDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(user_id);
-//        mFriendReqDatabase = FirebaseDatabase.getInstance().getReference().child("Friend_req");
-//        mFriendDatabase = FirebaseDatabase.getInstance().getReference().child("Friends");
-//        mNotificationDatabase = FirebaseDatabase.getInstance().getReference().child("notifications");
         mCurrent_user = FirebaseAuth.getInstance().getCurrentUser();
 
         mProfileImage = (ImageView) findViewById(R.id.profile_image);
@@ -131,7 +133,6 @@ public class ProfileActivity extends AppCompatActivity {
 
         mDeclineBtn.setVisibility(View.INVISIBLE);
         mDeclineBtn.setEnabled(false);
-
 
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setTitle("Loading User Data");
@@ -159,8 +160,31 @@ public class ProfileActivity extends AppCompatActivity {
 
         //Check whether selected user id is in the friend requests set
 
+        //is a friend?
+        isFriend(mCurrent_user.getUid(),selected_uid);
+
         //Req send by me
-        getReqType("from", "from_uid", "to_uid");
+        getReqType("from", mCurrent_user.getUid(), selected_uid);
+
+
+
+        addListeners();
+    }
+
+    boolean checkedInTo = false;
+    public void calledWhenFrmStateFalse(){
+
+        getReqType("from", selected_uid , mCurrent_user.getUid());
+        checkedInTo = true;
+
+        mProgressDialog.dismiss();
+    }
+
+    public void loadUI(){
+
+        if(isAFriend == false){
+            isFriend(mCurrent_user.getUid(),selected_uid);
+        }
 
         if (friendRequest.getFrom().equals(mCurrent_user.getUid())){
             //I have sent
@@ -183,8 +207,14 @@ public class ProfileActivity extends AppCompatActivity {
             mDeclineBtn.setVisibility(View.VISIBLE);
             mDeclineBtn.setEnabled(true);
         }
-        else if (isFriend(mCurrent_user.getUid()) == true){
-            //Check whether friends in friends collection
+        else if (isAFriend){
+            /*
+            * Following not working as expected*/
+            mCurrent_state = "friends";
+            mProfileSendReqBtn.setText("Unfriend this Person");
+
+            mDeclineBtn.setVisibility(View.INVISIBLE);
+            mDeclineBtn.setEnabled(false);
         }
 
 //                mFriendReqDatabase.child(mCurrent_user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -256,14 +286,7 @@ public class ProfileActivity extends AppCompatActivity {
 //        });
 //
 
-
-
-
-
-
         mProgressDialog.dismiss();
-
-
 
 //        //Should change below code
 //        mUsersDatabase.addValueEventListener(new ValueEventListener() {
@@ -569,32 +592,254 @@ public class ProfileActivity extends AppCompatActivity {
 //        });
     }
 
-    public void getReqType(String need, String from_uid, String to_uid){
-        String FIND_REQ_BY_FROM_URL ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
-        String FIND_REQ_BY_TO_URL ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
-        String FIND_IN_FRIENDS_URL = "http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
-        String url = null;
 
-        if (need.equals("from")){
-            url = FIND_REQ_BY_FROM_URL;
-        }
-        else if (need.equals("to")){
-            url = FIND_REQ_BY_TO_URL;
-        }
-        else {
-//            throw new RuntimeException();
-        }
+
+
+    //new
+    public void addListeners(){
+        mProfileSendReqBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                //Disable After clicking on that
+                mProfileSendReqBtn.setEnabled(false);
+
+                // If not friends
+                if(mCurrent_state.equals("not_friends")){
+
+                    //push() will create a push id, means a random id
+//                    DatabaseReference newNotificationref = mRootRef.child("notifications").child(user_id).push();
+//                    String newNotificationId = newNotificationref.getKey();
+//
+//                    //HashMap for Notification data
+//                    HashMap<String, String> notificationData = new HashMap<>();
+//                    notificationData.put("from", mCurrent_user.getUid());
+//                    notificationData.put("type", "request");
+
+//                    mUsersDatabase.child(user_id).addValueEventListener(new ValueEventListener() {
+//                        @Override
+//                        public void onDataChange(DataSnapshot dataSnapshot) {
+//                            String device_token = dataSnapshot.child("device_token").getValue().toString();
+//                            Log.d("Token ekaaa",device_token);
+//                        }
+//
+//                        @Override
+//                        public void onCancelled(DatabaseError databaseError) {
+//
+//                        }
+//                    });
+
+
+                    sendRequest(mCurrent_user.getUid() , selected_uid);
+
+                    //if success
+                    mCurrent_state = "req_sent";
+                    mProfileSendReqBtn.setText("Cancel Friend Request");
+                    mProfileSendReqBtn.setEnabled(true);
+
+
+
+//                    mNotificationDatabase.child(user_id).push().setValue(notificationData).addOnCompleteListener(new OnCompleteListener<Void>() {
+//                        @Override
+//                        public void onComplete(@NonNull Task<Void> task) {
+//
+//                            sendNotification();
+//                        }
+//                    });
+//                    //Map for requests
+//                    Map requestMap = new HashMap();
+//                    // Adding values by dividing forward slashes
+//                    requestMap.put("Friend_req/" + mCurrent_user.getUid() + "/" + user_id + "/request_type", "sent");
+//                    requestMap.put("Friend_req/" + user_id + "/" + mCurrent_user.getUid() + "/request_type", "received");
+//                    requestMap.put("notifications/" + user_id + "/" + newNotificationId, notificationData);
+
+//                    mRootRef.updateChildren(requestMap, new DatabaseReference.CompletionListener() {
+//                        @Override
+//                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+//
+//                            if(databaseError != null){
+//                                Toast.makeText(ProfileActivity.this, "There was some error in sending request", Toast.LENGTH_SHORT).show();
+//                            }
+//                            else {
+//                                mCurrent_state = "req_sent";
+//                                mProfileSendReqBtn.setText("Cancel Friend Request");
+//                            }
+//
+//                            mProfileSendReqBtn.setEnabled(true);
+//                        }
+//                    });
+                }
+
+                //Cancel requests state
+                else if(mCurrent_state.equals("req_sent")){
+
+                    deleteRequest(mCurrent_user.getUid() , selected_uid);
+
+                    //if success
+                    mProfileSendReqBtn.setEnabled(true);
+                    mCurrent_state = "not_friends";
+                    mProfileSendReqBtn.setText("Send Friend Request");
+
+                    mDeclineBtn.setVisibility(View.INVISIBLE);
+                    mDeclineBtn.setEnabled(false);
+
+                }
+
+
+                //Request Received state
+                else if(mCurrent_state.equals("req_received")){
+
+                    //save
+                    saveNewFriend(mCurrent_user.getUid(), selected_uid);
+                    saveNewFriend(selected_uid , mCurrent_user.getUid());
+
+                    deleteRequest(mCurrent_user.getUid() , selected_uid);
+                    deleteRequest(selected_uid , mCurrent_user.getUid());
+
+                    //If success
+                    mProfileSendReqBtn.setEnabled(true);
+                    mCurrent_state = "friends";
+                    mProfileSendReqBtn.setText("Unfriend this Person");
+
+                    mDeclineBtn.setVisibility(View.INVISIBLE);
+                    mDeclineBtn.setEnabled(false);
+
+
+
+
+
+
+                    //Get date
+                    //final String currentDate = DateFormat.getDateTimeInstance().format(new Date());
+
+//                    Map friendsMap = new HashMap();
+//                    friendsMap.put("Friends/" + mCurrent_user.getUid() + "/" + user_id + "/date", currentDate);
+//                    friendsMap.put("Friends/" + user_id + "/"  + mCurrent_user.getUid() + "/date", currentDate);
+//
+//                    friendsMap.put("Friend_req/" + mCurrent_user.getUid() + "/" + user_id, null);
+//                    friendsMap.put("Friend_req/" + user_id + "/" + mCurrent_user.getUid(), null);
+
+
+//                    mRootRef.updateChildren(friendsMap, new DatabaseReference.CompletionListener() {
+//                        @Override
+//                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+//
+//
+//                            if(databaseError == null){
+//
+//                                mProfileSendReqBtn.setEnabled(true);
+//                                mCurrent_state = "friends";
+//                                mProfileSendReqBtn.setText("Unfriend this Person");
+//
+//                                mDeclineBtn.setVisibility(View.INVISIBLE);
+//                                mDeclineBtn.setEnabled(false);
+//
+//                            } else {
+//
+//                                String error = databaseError.getMessage();
+//                                Toast.makeText(ProfileActivity.this, error, Toast.LENGTH_SHORT).show();
+//                            }
+//                        }
+//                    });
+                }
+
+
+                //Unfriend state
+//                if(mCurrent_state.equals("friends")){
+//
+//                    Map unfriendMap = new HashMap();
+//                    unfriendMap.put("Friends/" + mCurrent_user.getUid() + "/" + user_id, null);
+//                    unfriendMap.put("Friends/" + user_id + "/" + mCurrent_user.getUid(), null);
+//
+//                    mRootRef.updateChildren(unfriendMap, new DatabaseReference.CompletionListener() {
+//                        @Override
+//                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+//
+//
+//                            if(databaseError == null){
+//
+//                                mCurrent_state = "not_friends";
+//                                mProfileSendReqBtn.setText("Send Friend Request");
+//
+//                                mDeclineBtn.setVisibility(View.INVISIBLE);
+//                                mDeclineBtn.setEnabled(false);
+//
+//                            } else {
+//
+//                                String error = databaseError.getMessage();
+//
+//                                Toast.makeText(ProfileActivity.this, error, Toast.LENGTH_SHORT).show();
+//
+//
+//                            }
+//
+//                            mProfileSendReqBtn.setEnabled(true);
+//
+//                        }
+//                    });
+//
+//                }
+
+
+            }
+        });
+//
+//        //Decline Button listener
+        mDeclineBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //create a map
+
+                deleteRequest(selected_uid ,mCurrent_user.getUid());
+
+
+                //if success
+                mProfileSendReqBtn.setEnabled(true);
+                mCurrent_state = "not_friends";
+                mProfileSendReqBtn.setText("Send Friend Request");
+                mDeclineBtn.setVisibility(View.INVISIBLE);
+                mDeclineBtn.setEnabled(false);
+
+//                Map friendsDeclineMap = new HashMap();
+//                friendsDeclineMap.put("Friend_req/" + mCurrent_user.getUid() + "/" + user_id, null);
+//                friendsDeclineMap.put("Friend_req/" + user_id + "/" + mCurrent_user.getUid(), null);
+//
+//                mRootRef.updateChildren(friendsDeclineMap, new DatabaseReference.CompletionListener() {
+//                    @Override
+//                    public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+//                        if(databaseError == null){
+//                            mProfileSendReqBtn.setEnabled(true);
+//                            mCurrent_state = "not_friends";
+//                            mProfileSendReqBtn.setText("Send Friend Request");
+//                            mDeclineBtn.setVisibility(View.INVISIBLE);
+//                            mDeclineBtn.setEnabled(false);
+//                        }
+//                        else {
+//
+//                            String error = databaseError.getMessage();
+//                            Toast.makeText(ProfileActivity.this, error, Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//                });
+            }
+        });
+    }
+
+    boolean state = false;
+    public void getReqType(final String need, String from_uid, String to_uid){
+
+        String FIND_IN_FRIENDS_URL = getString(R.string.API_COMMON_URL)+"findByReq/"+ from_uid +"/" + to_uid;
 
         // Create a new volley request queue
         queue = Volley.newRequestQueue(getApplicationContext());
 
-        JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(
                 Request.Method.GET,
-                url,
+                FIND_IN_FRIENDS_URL,
                 null,
-                new Response.Listener<JSONArray>() {
+                new Response.Listener<JSONObject>() {
                     @Override
-                    public void onResponse(JSONArray response) {
+                    public void onResponse(JSONObject response) {
                         // Do something with response
                         // Process the JSON
                         try{
@@ -603,9 +848,9 @@ public class ProfileActivity extends AppCompatActivity {
                                 Gson gson = new Gson();
                                 Type type = new TypeToken<FriendRequest>(){}.getType();
                                 friendRequest = gson.fromJson(response.toString(), type);
-                                System.out.println(requestList.get(0));
-
-
+                                System.out.println(friendRequest);
+                                state = true;
+                                loadUI();
                             }
                         }catch (Exception e){
                             e.printStackTrace();
@@ -617,7 +862,15 @@ public class ProfileActivity extends AppCompatActivity {
                     public void onErrorResponse(VolleyError error){
                         // Do something when error occurred
                         System.out.println("An error occuered");
-                        System.out.println(error);
+                        System.out.println(error.getMessage());
+
+                        if (checkedInTo == false){
+                            calledWhenFrmStateFalse();
+                        }
+                        else {
+
+                        }
+
                     }
                 }
         );
@@ -625,24 +878,37 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
 
-    public boolean isFriend(String uid){
-        String FIND_IN_FRIENDS_URL = "http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/getAll";
+    static boolean isAFriend = false;
+    public boolean isFriend(String from, String to){
+        String FIND_IN_FRIENDS_URL = getString(R.string.API_COMMON_URL)+"isFriend/"+from+"/"+to;
         String url = null;
 
         // Create a new volley request queue
         queue = Volley.newRequestQueue(getApplicationContext());
 
-        JsonArrayRequest jsonObjectRequest = new JsonArrayRequest(
+        StringRequest jsonObjectRequest = new StringRequest(
                 Request.Method.GET,
-                url,
-                null,
-                new Response.Listener<JSONArray>() {
+                FIND_IN_FRIENDS_URL,
+                new Response.Listener<String>() {
                     @Override
-                    public void onResponse(JSONArray response) {
+                    public void onResponse(String response) {
                         // Do something with response
                         // Process the JSON
                         try{
                             System.out.println(response);
+                            if (response.toString().equals("true")){
+                                isAFriend = true;
+
+                                //change ui
+                                mCurrent_state = "friends";
+                                mProfileSendReqBtn.setText("Unfriend this Person");
+
+                                mDeclineBtn.setVisibility(View.INVISIBLE);
+                                mDeclineBtn.setEnabled(false);
+
+                                loadUI();
+                            }
+
                         }catch (Exception e){
                             e.printStackTrace();
                         }
@@ -658,6 +924,154 @@ public class ProfileActivity extends AppCompatActivity {
                 }
         );
         queue.add(jsonObjectRequest);
-        return false;
+        System.out.println("Elazzzz"+ isAFriend);
+        return isAFriend;
+    }
+
+
+
+
+    private void sendRequest(final String from, final String to) {
+
+        String SEND_REQ_URL = getString(R.string.API_COMMON_URL)+"saveReq";
+
+        // Create a new volley request queue
+        queue = Volley.newRequestQueue(getApplicationContext());
+
+        FriendRequest request = new FriendRequest();
+        request.setFrom(from);
+        request.setTo(to);
+
+        final Gson gson = new Gson();
+        String json = gson.toJson(request);
+
+        Log.d("TAG", json);
+
+        JSONObject jsonBody = null;
+
+        try {
+            jsonBody = new JSONObject(json);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(SEND_REQ_URL, jsonBody,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //Log.d("TAG", response.toString());
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("TAG", error.getMessage(), error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Content-Type", "application/json");
+                return params;
+            }
+        };
+        queue.add(jsonObjectRequest);
+    }
+
+    private void deleteRequest(final String from, final String to) {
+
+        String DELETE_REQ_URL = getString(R.string.API_COMMON_URL).toString()+"deleteReq/"+from+"/"+to;
+
+        // Create a new volley request queue
+        queue = Volley.newRequestQueue(getApplicationContext());
+
+        FriendRequest request = new FriendRequest();
+        request.setFrom(from);
+        request.setTo(to);
+
+        final Gson gson = new Gson();
+        String json = gson.toJson(request);
+
+        Log.d("TAG", json);
+
+        JSONObject jsonBody = null;
+
+        try {
+            jsonBody = new JSONObject(json);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(DELETE_REQ_URL);
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.DELETE, DELETE_REQ_URL, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //Log.d("TAG", response.toString());
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("TAG", error.getMessage(), error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Content-Type", "application/json");
+                return params;
+            }
+        };
+        queue.add(jsonObjectRequest);
+    }
+
+    public void saveNewFriend(String from, String to){
+        String STORE_NEW_FRIEND_URL = getString(R.string.API_COMMON_URL)+"storeFrnd/"+from;
+
+        // Create a new volley request queue
+        queue = Volley.newRequestQueue(getApplicationContext());
+
+        Friends friend = new Friends();
+        friend.setUid(to);
+
+        final Gson gson = new Gson();
+        String json = gson.toJson(friend);
+
+        Log.d("TAG", json);
+
+        JSONObject jsonBody = null;
+
+        try {
+            jsonBody = new JSONObject(json);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.PUT , STORE_NEW_FRIEND_URL, jsonBody,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //Log.d("TAG", response.toString());
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("TAG", error.getMessage(), error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Content-Type", "application/json");
+                return params;
+            }
+        };
+        queue.add(jsonObjectRequest);
     }
 }

@@ -119,7 +119,7 @@ public class LoginActivity extends AppCompatActivity {
                     // Stop running progress
                     mLoginProgress.hide();
 
-                    Intent mainIntent = new Intent(LoginActivity.this, MainActivity.class);
+                    Intent mainIntent = new Intent(LoginActivity.this, TroubleActivity.class);
                     mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(mainIntent);
                     finish();
@@ -131,7 +131,7 @@ public class LoginActivity extends AppCompatActivity {
                     final String deviceToken = FirebaseInstanceId.getInstance().getToken();
 
                     System.out.println("user id is : "+current_user_id);
-                    String GET_USER_BY_UID_URL ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/findbyuid/"+current_user_id;
+                    String GET_USER_BY_UID_URL = getString(R.string.API_COMMON_URL)+"findbyuid/"+current_user_id;
 
                     JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(GET_USER_BY_UID_URL, null,
                             new Response.Listener<JSONObject>() {

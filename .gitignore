@@ -5,6 +5,12 @@
 /.idea/modules.xml
 /.idea/workspace.xml
 .DS_Store
-/build
-/captures
+/build/
+/captures/
 .externalNativeBuild
+.idea/*
+app/.idea/
+app/build/
+
+
+

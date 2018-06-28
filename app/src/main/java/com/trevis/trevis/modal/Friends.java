@@ -1,8 +1,5 @@
-package models;
+package com.trevis.trevis.modal;
 
-import org.mongodb.morphia.annotations.Embedded;
-
-@Embedded
 public class Friends {
     private String uid;
 

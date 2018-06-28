@@ -2,7 +2,6 @@ package com.trevis.trevis.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -27,7 +26,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.gson.Gson;
 import com.trevis.trevis.R;
@@ -37,14 +35,6 @@ import com.trevis.trevis.modal.User;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedWriter;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,14 +60,17 @@ public class RegisterActivity extends AppCompatActivity {
 
     // Instantiate the RequestQueue.
     RequestQueue queue;
-    String url ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/add";
-    String url_friends ="http://ec2-54-255-152-162.ap-southeast-1.compute.amazonaws.com:9000/saveFrnd";
+    String url = null;
+    String url_friends = null;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        url = getString(R.string.API_COMMON_URL)+"add";
+        url_friends = getString(R.string.API_COMMON_URL)+"saveFrnd";
 
         //url = url.replaceAll(" ", "%20");
 
@@ -245,7 +238,7 @@ public class RegisterActivity extends AppCompatActivity {
                             return params;
                         }
                     };
-                    mQueue.add(jsonObjectRequest);
+                    queue.add(jsonObjectRequest);
 
                     // Go to the main intent
                     Intent mainIntent = new Intent(RegisterActivity.this, MainActivity.class);

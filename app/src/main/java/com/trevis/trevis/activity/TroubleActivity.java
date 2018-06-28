@@ -15,6 +15,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -29,14 +30,31 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ServerValue;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.gson.Gson;
 import com.trevis.trevis.R;
+import com.trevis.trevis.modal.User;
 import com.trevis.trevis.service.LocationService;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -60,6 +78,8 @@ public class TroubleActivity extends AppCompatActivity
     private ArrayAdapter<String> mAdapter;
     private ActionBarDrawerToggle mDrawerToggle;
     private String mActivityTitle;
+    // Instantiate the RequestQueue.
+    RequestQueue queue;
 
     private ServiceConnection sc = new ServiceConnection() {
         @Override
@@ -147,44 +167,55 @@ public class TroubleActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
-                builder.setTitle("How to close alertdialog programmatically");
-                builder.setMessage("5 second dialog will close automatically");
-                builder.setCancelable(false);
+//                AlertDialog.Builder builder = new AlertDialog.Builder(v.getContext());
+//                builder.setTitle("How to close alertdialog programmatically");
+//                builder.setMessage("5 second dialog will close automatically");
+//                builder.setCancelable(false);
+//
+//                final AlertDialog closedialog= builder.create();
+//
+//
+//                closedialog.setButton(AlertDialog.BUTTON_POSITIVE, "Proceed", new DialogInterface.OnClickListener() {
+//
+//                    public void onClick(DialogInterface dialog, int id) {
+//
+//
+//
+//                    } });
+//
+//                closedialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
+//
+//                    public void onClick(DialogInterface dialog, int id) {
+//
+//                        System.out.println("Clickedd");
+//
+//                    } });
+//                closedialog.show();
+//
+//                final Timer timer2 = new Timer();
+//                timer2.schedule(new TimerTask() {
+//                    public void run() {
+//                        //Send data to the backend
+//                        double lattitude = LocationService.mCurrentLocation.getLatitude();
+//                        double longitude = LocationService.mCurrentLocation.getLongitude();
+//
+//                        //Pass user id and location
+//                        sendPushForFriends(lattitude , longitude);
+//
+//                        closedialog.dismiss();
+//                        timer2.cancel(); //this will cancel the timer of the system
+//                    }
+//                }, 5000);
 
-                final AlertDialog closedialog= builder.create();
-
-
-                closedialog.setButton(AlertDialog.BUTTON_POSITIVE, "Proceed", new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        //Send data to the backend
-                        System.out.println("Lat : " +LocationService.mCurrentLocation.getLatitude());
-                        System.out.println("Long : " +LocationService.mCurrentLocation.getLongitude());
-
-                        //Pass user id and location
-
-                    } });
-
-                closedialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-
-                    public void onClick(DialogInterface dialog, int id) {
-
-                        System.out.println("Clickedd");
-
-                    } });
-                closedialog.show();
-
-                final Timer timer2 = new Timer();
-                timer2.schedule(new TimerTask() {
-                    public void run() {
-                        closedialog.dismiss();
-                        timer2.cancel(); //this will cancel the timer of the system
-                    }
-                }, 5000);
+                //move to ble activity
+                moveToBLEActivity();
             }
         });
+    }
+
+    public void moveToBLEActivity(){
+        Intent bleStartIntent = new Intent(this,BLEActivity.class);
+        startActivity(bleStartIntent);
     }
 
     @Override
@@ -220,7 +251,8 @@ public class TroubleActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-            return true;
+            FirebaseAuth.getInstance().signOut();
+            sendToStart();
         }
 
         if(item.getItemId() == R.id.main_logout_btn){
@@ -232,10 +264,10 @@ public class TroubleActivity extends AppCompatActivity
 
         }
 
-        // Activate the navigation drawer toggle
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
+//        // Activate the navigation drawer toggle
+//        if (mDrawerToggle.onOptionsItemSelected(item)) {
+//            return true;
+//        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -254,7 +286,6 @@ public class TroubleActivity extends AppCompatActivity
             finish();
 
         } else if (id == R.id.nav_community) {
-            System.out.println("sjsfhdhsdfjsifjjfjsodfksofdoskdfoskodfksokfo");
             Intent startIntent = new Intent(TroubleActivity.this, CommunityActivity.class);
             startActivity(startIntent);
 
@@ -397,5 +428,36 @@ public class TroubleActivity extends AppCompatActivity
         if(currentUser != null) {
             mUserRef.child("online").setValue(ServerValue.TIMESTAMP);
         }
+    }
+
+
+
+    public void sendPushForFriends(double lattitude , double longitude){
+        // Create a new volley request queue
+        queue = Volley.newRequestQueue(getApplicationContext());
+        String SEND_PUSH_FOR_FRIENDS = getString(R.string.API_COMMON_URL)+"sendPush/"+
+                mAuth.getCurrentUser().getUid()+"/"+lattitude+"/"+longitude;
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(SEND_PUSH_FOR_FRIENDS, null,
+                new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //Log.d("TAG", response.toString());
+
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("TAG", error.getMessage(), error);
+            }
+        }) {
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                Map<String, String> params = new HashMap<String, String>();
+                params.put("Content-Type", "application/json");
+                return params;
+            }
+        };
+        queue.add(jsonObjectRequest);
     }
 }
