@@ -18,9 +18,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.MainActivity" >
-
-        </activity>
+        <activity android:name=".activity.MainActivity"></activity>
 
         <service
             android:name=".service.LocationService"
@@ -33,44 +31,42 @@
 
         <activity
             android:name=".activity.RegisterActivity"
-            android:parentActivityName=".activity.StartActivity">
-
-        </activity>
+            android:parentActivityName=".activity.StartActivity"></activity>
         <activity
             android:name=".activity.LoginActivity"
-            android:parentActivityName=".activity.StartActivity">
-        </activity>
+            android:parentActivityName=".activity.StartActivity"></activity>
         <!-- <activity -->
         <!-- android:name=".activity.UsersActivity" -->
         <!-- android:label="@string/title_activity_users" -->
         <!-- android:theme="@style/AppTheme" /> -->
-        <activity android:name=".activity.ProfileActivity">
-
-        </activity>
+        <activity android:name=".activity.ProfileActivity"></activity>
         <activity
             android:name=".activity.CommunityActivity"
-            android:parentActivityName=".activity.TroubleActivity">
-
-        </activity>
+            android:parentActivityName=".activity.TroubleActivity"></activity>
         <activity
-            android:name=".activity.TroubleActivity"
-            android:label="@string/title_activity_trouble"
+            android:name=".activity.NavigationActivity"
+            android:label="@string/title_activity_navigation"
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.StartActivity">
+        <activity
+            android:name=".activity.TroubleActivity"
+            android:label="@string/title_activity_trouble"
+            android:theme="@style/AppTheme">
 
+            <!-- <intent-filter> -->
+            <!-- <action android:name="android.intent.action.MAIN" /> -->
+            <!-- <category android:name="android.intent.category.LAUNCHER" /> -->
+            <!-- </intent-filter> -->
         </activity>
-
+        <activity android:name=".activity.StartActivity"></activity>
         <activity
             android:name=".activity.BLEActivity"
             android:label="@string/title_activity_ble"
-            android:theme="@style/AppTheme">
-
-        </activity>
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>

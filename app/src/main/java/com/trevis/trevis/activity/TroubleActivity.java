@@ -279,6 +279,8 @@ public class TroubleActivity extends AppCompatActivity
 
         if (id == R.id.nav_my_location) {
             // Go to location activity
+            Intent startIntent = new Intent(TroubleActivity.this, NavigationActivity.class);
+            startActivity(startIntent);
         } else if (id == R.id.nav_trouble) {
 
             Intent startIntent = new Intent(TroubleActivity.this, TroubleActivity.class);
