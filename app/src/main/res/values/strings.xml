@@ -37,7 +37,7 @@
     <string name="title_activity_ble">BLEActivity</string>
 
 
-    <string name="access_token" translatable="false">pk.eyJ1IjoidjMiLCJhIjoiY2poaW5wcWZoMG05eTM2cnhydHIwZ2k2eSJ9.Q2vTVmvE-LLig9XgV0z4CA</string>
+    <string name="access_token" translatable="false">TOKEN_GOES_HERE</string>
     <string name="title_activity_navigation">NavigationActivity</string>
     <string name="action_settings">Settings</string>
 </resources>
